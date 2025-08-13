@@ -19,6 +19,12 @@ namespace MauiBankingExercise
     		builder.Logging.AddDebug();
 #endif
 
+            builder.Services.AddSingleton<PokemonViewModel>();
+            builder.Services.AddTransient<PokemonView>();
+            builder.Services.AddSingleton<BankDatabaseService>();
+            builder.Services.AddSingleton<AllPokemonViewModel>();
+            builder.Services.AddTransient<AllPokemonView>();
+
             return builder.Build();
         }
     }
