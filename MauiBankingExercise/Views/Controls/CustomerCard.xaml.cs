@@ -1,20 +1,22 @@
+// Views/Controls/CustomerCard.xaml.cs
 using MauiBankingExercise.Models;
 
-namespace MauiBankingExercise.Views.Controls;
-
-public partial class CustomerCard : ContentView
+namespace MauiBankingExercise.Views.Controls
 {
-    public static readonly BindableProperty CustomerProperty = BindableProperty.Create(
-        nameof(Customer), typeof(Customer), typeof(CustomerCard), null);
-
-    public Customer Customer
+    public partial class CustomerCard : ContentView
     {
-        get => (Customer)GetValue(CustomerProperty);
-        set => SetValue(CustomerProperty, value);
-    }
+        public static readonly BindableProperty CustomerProperty =
+            BindableProperty.Create(nameof(Customer), typeof(Customer), typeof(CustomerCard), null);
 
-    public CustomerCard()
-    {
-        InitializeComponent();
+        public Customer Customer
+        {
+            get => (Customer)GetValue(CustomerProperty);
+            set => SetValue(CustomerProperty, value);
+        }
+
+        public CustomerCard()
+        {
+            InitializeComponent();
+        }
     }
 }

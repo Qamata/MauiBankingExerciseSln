@@ -31,22 +31,23 @@
 
             <!-- Customer Info -->
             <StackLayout Grid.Column="1" VerticalOptions="Center">
-                <Label Text="{Binding Source={x:Reference CustomerCard}, Path=Customer.FirstName}" 
+                <Label Text="{Binding FirstName}" 
                        FontSize="18" 
                        FontAttributes="Bold"
                        TextColor="{AppThemeBinding Light=Black, Dark=White}" />
-                <Label Text="{Binding Source={x:Reference CustomerCard}, Path=Customer.LastName}" 
+                <Label Text="{Binding LastName}" 
                        FontSize="14" 
                        TextColor="{AppThemeBinding Light=#666666, Dark=#CCCCCC}" />
-                <Label Text="{Binding Source={x:Reference CustomerCard}, Path=Customer.Email}" 
+                <Label Text="{Binding Email}" 
                        FontSize="14" 
                        TextColor="{AppThemeBinding Light=#666666, Dark=#CCCCCC}" />
             </StackLayout>
 
             <!-- Arrow -->
             <Label Grid.Column="2" 
-                   Text=">" 
-                   FontSize="18" 
+                   Text="›" 
+                   FontSize="24" 
+                   FontAttributes="Bold"
                    TextColor="{AppThemeBinding Light=#666666, Dark=#CCCCCC}"
                    VerticalOptions="Center" />
         </Grid>
