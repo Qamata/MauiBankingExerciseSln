@@ -9,6 +9,7 @@ namespace MauiBankingExercise.ViewModels
     public class AccountDetailsViewModel : BaseViewModel
     {
         private readonly IDatabaseService _databaseService;
+        private readonly IDataRefreshService _refreshService;
 
         private Account _account;
         public Account Account
@@ -21,10 +22,18 @@ namespace MauiBankingExercise.ViewModels
 
         public ICommand LoadTransactionsCommand { get; }
 
-        public AccountDetailsViewModel(IDatabaseService databaseService)
+        public AccountDetailsViewModel(IDatabaseService databaseService, IDataRefreshService refreshService)
         {
             _databaseService = databaseService;
+            _refreshService = refreshService;
             LoadTransactionsCommand = new Command(async () => await LoadTransactions());
+            // Subscribe to transactions updates
+            _refreshService.TransactionsUpdated += async (s, e) => await LoadTransactions();
+        }
+
+        ~AccountDetailsViewModel()
+        {
+            _refreshService.TransactionsUpdated -= async (s, e) => await LoadTransactions();
         }
 
         public async Task Initialize(Account account)

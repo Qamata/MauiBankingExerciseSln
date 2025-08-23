@@ -19,8 +19,9 @@
 
         <!-- Balance Summary (if you have a BalanceCard control) -->
         <controls:BalanceCard Grid.Row="1" 
-                              Balance="{Binding TotalBalance}"
-                              Margin="0,0,0,16" />
+                              Title="Total Balance"
+                     Balance="{Binding TotalBalance}"
+                     Subtitle="All Accounts" />
 
         <!-- Accounts List -->
         <CollectionView Grid.Row="2"
@@ -50,6 +51,11 @@
             <Button Text="Make Transaction" 
                     Command="{Binding MakeTransactionCommand}"
                     IsEnabled="{Binding HasSelectedAccount}" />
+            <Button Text="Refresh" 
+            Command="{Binding RefreshDataCommand}"
+            IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBoolConverter}}"
+            BackgroundColor="{AppThemeBinding Light=#757575, Dark=#9E9E9E}"
+            TextColor="White" />
         </StackLayout>
     </Grid>
 </ContentPage>

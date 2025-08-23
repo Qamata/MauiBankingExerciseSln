@@ -14,6 +14,12 @@ namespace MauiBankingExercise.Services
         Task<Account> GetAccountByIdAsync(int accountId);
         Task<List<Transaction>> GetAccountTransactionsAsync(int accountId);
         Task<bool> MakeTransactionAsync(Transaction transaction);
+        Task<List<TransactionType>> GetAllTransactionTypesAsync();
+        Task<bool> InsertTransactionTypeAsync(TransactionType transactionType);
         bool HasData();
+        Task<bool> UpdateAccountBalanceAsync(int accountId, decimal newBalance);
+        Task<Account> GetAccountWithBalanceAsync(int accountId);
+        
+        Task<Account> RefreshAccountDataAsync(Account account);
     }
 }

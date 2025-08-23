@@ -22,6 +22,21 @@ namespace MauiBankingExercise.Services
             return _instance;
         }
 
+        public async Task<List<TransactionType>> GetAllTransactionTypesAsync()
+        {
+            try
+            {
+                Console.WriteLine("Getting transaction types from database...");
+                var types = _dbConnection.Table<TransactionType>().ToList();
+                Console.WriteLine($"Found {types.Count} transaction types");
+                return await Task.FromResult(types);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting transaction types: {ex.Message}");
+                return await Task.FromResult(new List<TransactionType>());
+            }
+        }
         public string GetDatabasePath()
         {
             string filename = "bank.db";
@@ -343,32 +358,183 @@ namespace MauiBankingExercise.Services
             }
         }
 
+        // Services/DatabaseService.cs
+        public async Task<bool> UpdateAccountBalanceAsync(int accountId, decimal newBalance)
+        {
+            try
+            {
+                var account = await GetAccountByIdAsync(accountId);
+                if (account != null)
+                {
+                    account.AccountBalance = newBalance;
+                    _dbConnection.Update(account);
+                    Console.WriteLine($"Updated account {accountId} balance to {newBalance:C}");
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating account balance: {ex.Message}");
+                return false;
+            }
+        }
+
+        public async Task<Account> GetAccountWithBalanceAsync(int accountId)
+        {
+            try
+            {
+                // Get a fresh copy from the database
+                var account = _dbConnection.Table<Account>()
+                    .FirstOrDefault(a => a.AccountId == accountId);
+
+                if (account != null)
+                {
+                    // Recalculate balance from transactions to ensure accuracy
+                    var transactions = _dbConnection.Table<Transaction>()
+                        .Where(t => t.AccountId == accountId)
+                        .ToList();
+
+                    decimal calculatedBalance = 0;
+
+                    foreach (var transaction in transactions)
+                    {
+                        if (transaction.TransactionTypeId == 1) // Deposit
+                        {
+                            calculatedBalance += transaction.Amount;
+                        }
+                        else if (transaction.TransactionTypeId == 2) // Withdrawal
+                        {
+                            calculatedBalance -= transaction.Amount;
+                        }
+                        else if (transaction.TransactionTypeId == 3) // Transfer
+                        {
+                            calculatedBalance -= transaction.Amount;
+                        }
+                    }
+
+                    Console.WriteLine($"Recalculated balance from transactions: {calculatedBalance:C}");
+                    Console.WriteLine($"Current account balance: {account.AccountBalance:C}");
+
+                    // Update account balance if it doesn't match calculated balance
+                    if (account.AccountBalance != calculatedBalance)
+                    {
+                        Console.WriteLine($"Correcting account balance from {account.AccountBalance:C} to {calculatedBalance:C}");
+                        account.AccountBalance = calculatedBalance;
+                        _dbConnection.Update(account);
+                    }
+
+                    return account;
+                }
+                return null;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting account with balance: {ex.Message}");
+                return null;
+            }
+        }
+
+        public async Task<Account> RefreshAccountDataAsync(Account account)
+        {
+            try
+            {
+                Console.WriteLine($"Refreshing account data for account ID: {account.AccountId}");
+
+                // Get a fresh copy of the account from the database
+                var refreshedAccount = _dbConnection.Table<Account>()
+                    .FirstOrDefault(a => a.AccountId == account.AccountId);
+
+                if (refreshedAccount != null)
+                {
+                    Console.WriteLine($"Original balance: {account.AccountBalance:C}, Refreshed balance: {refreshedAccount.AccountBalance:C}");
+
+                    // Update the provided account object with fresh data
+                    account.AccountBalance = refreshedAccount.AccountBalance;
+                    account.AccountNumber = refreshedAccount.AccountNumber;
+                    account.IsActive = refreshedAccount.IsActive;
+                    // Update other properties as needed
+
+                    return account;
+                }
+
+                Console.WriteLine("Account not found in database during refresh");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error refreshing account data: {ex.Message}");
+                return null;
+            }
+        }
+
+        public async Task<bool> InsertTransactionTypeAsync(TransactionType transactionType)
+        {
+            try
+            {
+                _dbConnection.Insert(transactionType);
+                return await Task.FromResult(true);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error inserting transaction type: {ex.Message}");
+                return await Task.FromResult(false);
+            }
+        }
+
+        // Services/DatabaseService.cs
+        // In DatabaseService.MakeTransactionAsync method
         public async Task<bool> MakeTransactionAsync(Transaction transaction)
         {
             try
             {
+                Console.WriteLine("=== MAKING TRANSACTION ===");
+                Console.WriteLine($"Account ID: {transaction.AccountId}");
+                Console.WriteLine($"Transaction Type: {transaction.TransactionTypeId}");
+                Console.WriteLine($"Amount: {transaction.Amount:C}");
+
+                // Use synchronous RunInTransaction
                 _dbConnection.RunInTransaction(() =>
                 {
-                    // Insert the transaction
-                    _dbConnection.Insert(transaction);
-
-                    // Update the account balance
+                    // 1. First, get the current account balance
                     var account = _dbConnection.Table<Account>()
                         .FirstOrDefault(a => a.AccountId == transaction.AccountId);
 
-                    if (account != null)
+                    if (account == null)
                     {
-                        if (transaction.TransactionTypeId == 1) // Deposit
-                        {
-                            account.AccountBalance += transaction.Amount;
-                        }
-                        else if (transaction.TransactionTypeId == 2) // Withdrawal
-                        {
-                            account.AccountBalance -= transaction.Amount;
-                        }
-
-                        _dbConnection.Update(account);
+                        Console.WriteLine("ERROR: Account not found!");
+                        return;
                     }
+
+                    Console.WriteLine($"Current balance: {account.AccountBalance:C}");
+
+                    // 2. Calculate the new balance
+                    decimal newBalance = account.AccountBalance;
+
+                    if (transaction.TransactionTypeId == 1) // Deposit
+                    {
+                        newBalance += transaction.Amount;
+                        Console.WriteLine($"Deposit: {account.AccountBalance:C} + {transaction.Amount:C} = {newBalance:C}");
+                    }
+                    else if (transaction.TransactionTypeId == 2) // Withdrawal
+                    {
+                        newBalance -= transaction.Amount;
+                        Console.WriteLine($"Withdrawal: {account.AccountBalance:C} - {transaction.Amount:C} = {newBalance:C}");
+                    }
+                    else if (transaction.TransactionTypeId == 3) // Transfer
+                    {
+                        newBalance -= transaction.Amount;
+                        Console.WriteLine($"Transfer: {account.AccountBalance:C} - {transaction.Amount:C} = {newBalance:C}");
+                    }
+
+                    // 3. Insert the transaction
+                    _dbConnection.Insert(transaction);
+                    Console.WriteLine($"Transaction inserted successfully");
+
+                    // 4. Update the account balance
+                    account.AccountBalance = newBalance;
+                    _dbConnection.Update(account);
+                    Console.WriteLine($"Account balance updated to: {newBalance:C}");
                 });
 
                 return await Task.FromResult(true);
@@ -376,6 +542,7 @@ namespace MauiBankingExercise.Services
             catch (Exception ex)
             {
                 Console.WriteLine($"Error making transaction: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 return await Task.FromResult(false);
             }
         }

@@ -38,6 +38,8 @@ namespace MauiBankingExercise
             builder.Services.AddTransient<CustomerDashboardPage>();
             builder.Services.AddTransient<AccountDetailsPage>();
             builder.Services.AddTransient<TransactionPage>();
+            // MauiProgram.cs
+            builder.Services.AddSingleton<IDataRefreshService, DataRefreshService>();
 
             return builder.Build();
         }

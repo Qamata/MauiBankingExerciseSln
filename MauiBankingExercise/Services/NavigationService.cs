@@ -9,10 +9,12 @@ namespace MauiBankingExercise.Services
     public class NavigationService : INavigationService
     {
         private readonly IServiceProvider _serviceProvider;
+        private readonly IDataRefreshService _refreshService;
 
-        public NavigationService(IServiceProvider serviceProvider)
+        public NavigationService(IServiceProvider serviceProvider, IDataRefreshService refreshService)
         {
             _serviceProvider = serviceProvider;
+            _refreshService = refreshService;
         }
 
         public async Task NavigateToDashboardAsync(Customer customer)
@@ -23,6 +25,8 @@ namespace MauiBankingExercise.Services
             dashboardPage.BindingContext = viewModel;
             await Application.Current.MainPage.Navigation.PushAsync(dashboardPage);
         }
+
+       
 
         public async Task NavigateToAccountDetailsAsync(Account account)
         {

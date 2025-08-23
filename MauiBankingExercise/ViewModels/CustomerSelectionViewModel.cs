@@ -1,4 +1,4 @@
-﻿// ViewModels/CustomerSelectionViewModel.cs
+﻿
 using MauiBankingExercise.Models;
 using MauiBankingExercise.Services;
 using System.Collections.ObjectModel;
@@ -10,6 +10,7 @@ namespace MauiBankingExercise.ViewModels
     {
         private readonly IDatabaseService _databaseService;
         private readonly INavigationService _navigationService;
+        private readonly IDataRefreshService _refreshService;
 
         public ObservableCollection<Customer> Customers { get; } = new ObservableCollection<Customer>();
 
@@ -26,11 +27,14 @@ namespace MauiBankingExercise.ViewModels
                 }
             }
         }
+        
 
         public ICommand LoadCustomersCommand { get; }
 
-        public CustomerSelectionViewModel(IDatabaseService databaseService, INavigationService navigationService)
+        public CustomerSelectionViewModel(IDatabaseService databaseService, INavigationService navigationService,
+                                IDataRefreshService refreshService)
         {
+            _refreshService = refreshService;
             _databaseService = databaseService;
             _navigationService = navigationService;
             LoadCustomersCommand = new Command(async () => await LoadCustomers());
