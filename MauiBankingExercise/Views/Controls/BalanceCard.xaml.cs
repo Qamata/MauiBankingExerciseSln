@@ -1,38 +1,39 @@
-namespace MauiBankingExercise.Views.Controls;
+using Microsoft.Maui.Controls;
 
-public partial class BalanceCard : ContentView
+namespace MauiBankingExercise.Views.Controls
 {
-    public static readonly BindableProperty TitleProperty = BindableProperty.Create(
-        nameof(Title), typeof(string), typeof(BalanceCard), "Available Balance");
-
-    public static readonly BindableProperty BalanceProperty = BindableProperty.Create(
-        nameof(Balance), typeof(decimal), typeof(BalanceCard), 0m);
-
-    public static readonly BindableProperty SubtitleProperty = BindableProperty.Create(
-        nameof(Subtitle), typeof(string), typeof(BalanceCard), "");
-
-    public string Title
+    public partial class BalanceCard : ContentView
     {
-        get => (string)GetValue(TitleProperty);
-        set => SetValue(TitleProperty, value);
-    }
+        public static readonly BindableProperty BalanceProperty =
+            BindableProperty.Create(nameof(Balance), typeof(decimal), typeof(BalanceCard), 0m);
 
-    public decimal Balance
-    {
-        get => (decimal)GetValue(BalanceProperty);
-        set => SetValue(BalanceProperty, value);
-    }
+        public static readonly BindableProperty TitleProperty =
+            BindableProperty.Create(nameof(Title), typeof(string), typeof(BalanceCard), string.Empty);
 
-    public string Subtitle
-    {
-        get => (string)GetValue(SubtitleProperty);
-        set => SetValue(SubtitleProperty, value);
-    }
+        public static readonly BindableProperty SubtitleProperty =
+            BindableProperty.Create(nameof(Subtitle), typeof(string), typeof(BalanceCard), string.Empty);
 
-    public string FormattedBalance => Balance.ToString("C");
+        public decimal Balance
+        {
+            get => (decimal)GetValue(BalanceProperty);
+            set => SetValue(BalanceProperty, value);
+        }
 
-    public BalanceCard()
-    {
-        InitializeComponent();
+        public string Title
+        {
+            get => (string)GetValue(TitleProperty);
+            set => SetValue(TitleProperty, value);
+        }
+
+        public string Subtitle
+        {
+            get => (string)GetValue(SubtitleProperty);
+            set => SetValue(SubtitleProperty, value);
+        }
+
+        public BalanceCard()
+        {
+            InitializeComponent();
+        }
     }
 }

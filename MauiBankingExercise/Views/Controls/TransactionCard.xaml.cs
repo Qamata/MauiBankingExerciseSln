@@ -1,34 +1,21 @@
 using MauiBankingExercise.Models;
 
-namespace MauiBankingExercise.Views.Controls;
-
-public partial class TransactionCard : ContentView
+namespace MauiBankingExercise.Views.Controls
 {
-    public static readonly BindableProperty TransactionProperty = BindableProperty.Create(
-        nameof(Transaction), typeof(Transaction), typeof(TransactionCard), null);
-
-    public Transaction Transaction
+    public partial class TransactionCard : ContentView
     {
-        get => (Transaction)GetValue(TransactionProperty);
-        set => SetValue(TransactionProperty, value);
-    }
+        public static readonly BindableProperty TransactionProperty =
+            BindableProperty.Create(nameof(Transaction), typeof(Transaction), typeof(TransactionCard), null);
 
-    public string TransactionIcon => Transaction?.TransactionType switch
-    {
-       /* "Deposit" => "?",
-        "Withdrawal" => "?",
-        "Transfer" => "?",
-        _ => "??"*/
-    };
+        public Transaction Transaction
+        {
+            get => (Transaction)GetValue(TransactionProperty);
+            set => SetValue(TransactionProperty, value);
+        }
 
-    public Color IconBackgroundColor => Transaction?.Amount >= 0 ? Colors.Green : Colors.Red;
-
-    public Color AmountTextColor => Transaction?.Amount >= 0
-        ? Color.FromArgb("#2E7D32")
-        : Color.FromArgb("#D32F2F");
-
-    public TransactionCard()
-    {
-        InitializeComponent();
+        public TransactionCard()
+        {
+            InitializeComponent();
+        }
     }
 }

@@ -10,7 +10,7 @@
         <!-- Account Header -->
         <StackLayout Grid.Row="0">
             <!-- Account Balance Card -->
-            <controls:BalanceCard Title="{Binding Account.AccountTypeName}"
+            <controls:BalanceCard Title="{Binding Account.AccountType.Name}"
                                  Balance="{Binding Account.AccountBalance}"
                                  Subtitle="{Binding Account.AccountNumber}" />
 

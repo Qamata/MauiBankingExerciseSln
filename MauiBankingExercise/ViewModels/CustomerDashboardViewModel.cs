@@ -18,10 +18,25 @@ namespace MauiBankingExercise.ViewModels
             set => SetProperty(ref _customer, value);
         }
 
+        private Account _selectedAccount;
+        public Account SelectedAccount
+        {
+            get => _selectedAccount;
+            set
+            {
+                SetProperty(ref _selectedAccount, value);
+                OnPropertyChanged(nameof(HasSelectedAccount));
+            }
+        }
+
+        public bool HasSelectedAccount => SelectedAccount != null;
+
+        public decimal TotalBalance => Accounts.Sum(a => a.AccountBalance);
+
         public ObservableCollection<Account> Accounts { get; } = new ObservableCollection<Account>();
 
         public ICommand LoadAccountsCommand { get; }
-        public ICommand SelectAccountCommand { get; }
+        public ICommand ViewTransactionsCommand { get; }
         public ICommand MakeTransactionCommand { get; }
 
         public CustomerDashboardViewModel(IDatabaseService databaseService, INavigationService navigationService)
@@ -30,8 +45,8 @@ namespace MauiBankingExercise.ViewModels
             _navigationService = navigationService;
 
             LoadAccountsCommand = new Command(async () => await LoadAccounts());
-            SelectAccountCommand = new Command<Account>(async (account) => await SelectAccount(account));
-            MakeTransactionCommand = new Command<Account>(async (account) => await MakeTransaction(account));
+            ViewTransactionsCommand = new Command(async () => await ViewTransactions(), () => HasSelectedAccount);
+            MakeTransactionCommand = new Command(async () => await MakeTransaction(), () => HasSelectedAccount);
         }
 
         public async Task Initialize(Customer customer)
@@ -53,6 +68,9 @@ namespace MauiBankingExercise.ViewModels
                 {
                     Accounts.Add(account);
                 }
+
+                // Notify that TotalBalance has changed
+                OnPropertyChanged(nameof(TotalBalance));
             }
             finally
             {
@@ -60,19 +78,19 @@ namespace MauiBankingExercise.ViewModels
             }
         }
 
-        private async Task SelectAccount(Account account)
+        private async Task ViewTransactions()
         {
-            if (account != null)
+            if (SelectedAccount != null)
             {
-                await _navigationService.NavigateToAccountDetailsAsync(account);
+                await _navigationService.NavigateToAccountDetailsAsync(SelectedAccount);
             }
         }
 
-        private async Task MakeTransaction(Account account)
+        private async Task MakeTransaction()
         {
-            if (account != null)
+            if (SelectedAccount != null)
             {
-                await _navigationService.NavigateToTransactionPageAsync(account);
+                await _navigationService.NavigateToTransactionPageAsync(SelectedAccount);
             }
         }
     }

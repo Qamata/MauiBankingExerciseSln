@@ -2,7 +2,7 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MauiBankingExercise.Views.Controls.CustomerCard"
-             x:Name="CustomerCardView">
+             x:Name="root">
 
     <Border BackgroundColor="{AppThemeBinding Light=White, Dark=#2D2D30}"
             Stroke="{AppThemeBinding Light=#E0E0E0, Dark=#404040}"
@@ -31,14 +31,14 @@
 
             <!-- Customer Info -->
             <StackLayout Grid.Column="1" VerticalOptions="Center">
-                <Label Text="{Binding FirstName}" 
+                <Label Text="{Binding Source={x:Reference root}, Path=Customer.FirstName}" 
                        FontSize="18" 
                        FontAttributes="Bold"
                        TextColor="{AppThemeBinding Light=Black, Dark=White}" />
-                <Label Text="{Binding LastName}" 
+                <Label Text="{Binding Source={x:Reference root}, Path=Customer.LastName}" 
                        FontSize="14" 
                        TextColor="{AppThemeBinding Light=#666666, Dark=#CCCCCC}" />
-                <Label Text="{Binding Email}" 
+                <Label Text="{Binding Source={x:Reference root}, Path=Customer.Email}" 
                        FontSize="14" 
                        TextColor="{AppThemeBinding Light=#666666, Dark=#CCCCCC}" />
             </StackLayout>

@@ -1,20 +1,22 @@
 using MauiBankingExercise.Models;
+using Microsoft.Maui.Controls;
 
-namespace MauiBankingExercise.Views.Controls;
-
-public partial class AccountCard : ContentView
+namespace MauiBankingExercise.Views.Controls
 {
-    public static readonly BindableProperty AccountProperty = BindableProperty.Create(
-        nameof(Account), typeof(Account), typeof(AccountCard), null);
-
-    public Account Account
+    public partial class AccountCard : ContentView
     {
-        get => (Account)GetValue(AccountProperty);
-        set => SetValue(AccountProperty, value);
-    }
+        public static readonly BindableProperty AccountProperty =
+            BindableProperty.Create(nameof(Account), typeof(Account), typeof(AccountCard), null);
 
-    public AccountCard()
-    {
-        InitializeComponent();
+        public Account Account
+        {
+            get => (Account)GetValue(AccountProperty);
+            set => SetValue(AccountProperty, value);
+        }
+
+        public AccountCard()
+        {
+            InitializeComponent();
+        }
     }
 }

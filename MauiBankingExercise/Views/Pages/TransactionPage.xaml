@@ -9,7 +9,7 @@
     <ScrollView Padding="20">
         <StackLayout Spacing="20">
             <!-- Account Info -->
-            <controls:BalanceCard Title="{Binding Account.AccountTypeName}"
+            <controls:BalanceCard Title="{Binding Account.AccountType.Name}"
                                  Balance="{Binding Account.AccountBalance}"
                                  Subtitle="{Binding Account.AccountNumber}" />
 

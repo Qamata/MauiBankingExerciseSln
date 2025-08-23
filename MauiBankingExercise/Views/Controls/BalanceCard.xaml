@@ -2,30 +2,36 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MauiBankingExercise.Views.Controls.BalanceCard"
-             x:Name="BalanceCardView">
+             x:Name="root">
 
-    <Border BackgroundColor="{AppThemeBinding Light=#1976D2, Dark=#1565C0}"
+    <Border BackgroundColor="{AppThemeBinding Light=#E8F5E9, Dark=#1B5E20}"
+            Stroke="{AppThemeBinding Light=#C8E6C9, Dark=#2E7D32}"
+            StrokeThickness="1"
             Padding="20"
-            Margin="16,8">
+            Margin="0,0,0,16">
         <Border.StrokeShape>
             <RoundRectangle CornerRadius="16" />
         </Border.StrokeShape>
 
-        <StackLayout>
-            <Label Text="{Binding Source={x:Reference BalanceCard}, Path=Title}" 
+        <StackLayout HorizontalOptions="Center">
+            <!-- Title -->
+            <Label Text="{Binding Source={x:Reference root}, Path=Title}" 
                    FontSize="16" 
-                   TextColor="White"
-                   Opacity="0.9" />
-            <Label Text="{Binding Source={x:Reference BalanceCard}, Path=FormattedBalance}" 
-                   FontSize="32" 
+                   TextColor="{AppThemeBinding Light=#388E3C, Dark=#A5D6A7}"
+                   HorizontalOptions="Center" />
+
+            <!-- Balance -->
+            <Label Text="{Binding Source={x:Reference root}, Path=Balance, StringFormat='{0:C}'}" 
+                   FontSize="28" 
                    FontAttributes="Bold"
-                   TextColor="White"
-                   Margin="0,8,0,0" />
-            <Label Text="{Binding Source={x:Reference BalanceCard}, Path=Subtitle}" 
+                   TextColor="{AppThemeBinding Light=#1B5E20, Dark=White}"
+                   HorizontalOptions="Center" />
+
+            <!-- Subtitle -->
+            <Label Text="{Binding Source={x:Reference root}, Path=Subtitle}" 
                    FontSize="14" 
-                   TextColor="White"
-                   Opacity="0.8"
-                   Margin="0,4,0,0" />
+                   TextColor="{AppThemeBinding Light=#388E3C, Dark=#A5D6A7}"
+                   HorizontalOptions="Center" />
         </StackLayout>
     </Border>
 </ContentView>
