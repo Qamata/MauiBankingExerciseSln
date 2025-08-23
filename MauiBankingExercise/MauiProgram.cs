@@ -1,4 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
+﻿// MauiProgram.cs
+using MauiBankingExercise.Services;
+using MauiBankingExercise.ViewModels;
+using Microsoft.Extensions.Logging;
+using MauiBankingExercise.Views.Pages;
 
 namespace MauiBankingExercise
 {
@@ -16,8 +20,24 @@ namespace MauiBankingExercise
                 });
 
 #if DEBUG
-    		builder.Logging.AddDebug();
+            builder.Logging.AddDebug();
 #endif
+
+            // Register Services
+            builder.Services.AddSingleton<IDatabaseService>(_ => DatabaseService.GetInstance());
+            builder.Services.AddSingleton<INavigationService, NavigationService>();
+
+            // Register ViewModels
+            builder.Services.AddTransient<CustomerSelectionViewModel>();
+            builder.Services.AddTransient<CustomerDashboardViewModel>();
+            builder.Services.AddTransient<AccountDetailsViewModel>();
+            builder.Services.AddTransient<TransactionViewModel>();
+
+            // Register Pages
+            builder.Services.AddTransient<CustomerSelectionPage>();
+            builder.Services.AddTransient<CustomerDashboardPage>();
+            builder.Services.AddTransient<AccountDetailsPage>();
+            builder.Services.AddTransient<TransactionPage>();
 
             return builder.Build();
         }

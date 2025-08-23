@@ -1,15 +1,21 @@
-﻿namespace MauiBankingExercise
+﻿// App.xaml.cs
+using MauiBankingExercise.Services;
+using MauiBankingExercise.Views.Pages;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace MauiBankingExercise
 {
     public partial class App : Application
     {
-        public App()
+        public App(IServiceProvider serviceProvider)
         {
             InitializeComponent();
-        }
 
-        protected override Window CreateWindow(IActivationState? activationState)
-        {
-            return new Window(new AppShell());
+            // Initialize database
+            var databaseService = serviceProvider.GetService<IDatabaseService>();
+            databaseService.InitializeDatabaseAsync();
+
+            MainPage = new NavigationPage(serviceProvider.GetService<CustomerSelectionPage>());
         }
     }
 }

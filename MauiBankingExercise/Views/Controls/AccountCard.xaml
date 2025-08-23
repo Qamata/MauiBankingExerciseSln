@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiBankingExercise.Views.Controls.AccountCard"
+             x:Name="AccountCardView">
+
+    <Border BackgroundColor="{AppThemeBinding Light=White, Dark=#2D2D30}"
+            Stroke="{AppThemeBinding Light=#E0E0E0, Dark=#404040}"
+            StrokeThickness="1"
+            Padding="16"
+            Margin="8,4">
+        <Border.StrokeShape>
+            <RoundRectangle CornerRadius="12" />
+        </Border.StrokeShape>
+
+        <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,Auto">
+            <!-- Account Type -->
+            <Label Grid.Row="0" Grid.Column="0"
+                   Text="{Binding Source={x:Reference AccountCard}, Path=Account.AccountTypeName}" 
+                   FontSize="16" 
+                   FontAttributes="Bold"
+                   TextColor="{AppThemeBinding Light=Black, Dark=White}" />
+
+            <!-- Account Number -->
+            <Label Grid.Row="1" Grid.Column="0"
+                   Text="{Binding Source={x:Reference AccountCard}, Path=Account.AccountNumber}" 
+                   FontSize="14" 
+                   TextColor="{AppThemeBinding Light=#666666, Dark=#CCCCCC}"
+                   Margin="0,4,0,8" />
+
+            <!-- Balance -->
+            <Label Grid.Row="2" Grid.Column="0"
+                   Text="{Binding Source={x:Reference AccountCard}, Path=Account.FormatBalance}" 
+                   FontSize="20" 
+                   FontAttributes="Bold"
+                   TextColor="{AppThemeBinding Light=#2E7D32, Dark=#4CAF50}" />
+
+            <!-- Arrow -->
+            <Label Grid.Row="0" Grid.RowSpan="3" Grid.Column="1" 
+                   Text=">" 
+                   FontSize="18" 
+                   TextColor="{AppThemeBinding Light=#666666, Dark=#CCCCCC}"
+                   VerticalOptions="Center" />
+        </Grid>
+    </Border>
+</ContentView>
