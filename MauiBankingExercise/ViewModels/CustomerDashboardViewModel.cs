@@ -125,19 +125,21 @@ namespace MauiBankingExercise.ViewModels
             }
         }
 
-        private void OnAccountUpdated(object sender, AccountUpdatedEventArgs e)
+        private async void OnAccountUpdated(object sender, AccountUpdatedEventArgs e)
         {
-            // Update the account in our collection if it exists
-            var accountToUpdate = Accounts.FirstOrDefault(a => a.AccountId == e.Account.AccountId);
-            if (accountToUpdate != null)
+            // Ensure this runs on UI thread
+            MainThread.BeginInvokeOnMainThread(() =>
             {
-                accountToUpdate.AccountBalance = e.Account.AccountBalance;
+                var accountToUpdate = Accounts.FirstOrDefault(a => a.AccountId == e.Account.AccountId);
+                if (accountToUpdate != null)
+                {
+                    // This will trigger UI update due to INotifyPropertyChanged
+                    accountToUpdate.AccountBalance = e.Account.AccountBalance;
 
-                // Notify that TotalBalance has changed
-                OnPropertyChanged(nameof(TotalBalance));
-
-                Console.WriteLine($"Account {e.Account.AccountId} balance updated to {e.Account.AccountBalance:C}");
-            }
+                    // Force UI refresh
+                    OnPropertyChanged(nameof(TotalBalance));
+                }
+            });
         }
 
         private async Task ViewTransactions()

@@ -21,6 +21,9 @@
                    HorizontalOptions="Center" />
 
             <!-- Balance -->
+            <ActivityIndicator IsVisible="{Binding IsRefreshing}" 
+                 IsRunning="{Binding IsRefreshing}"
+                 Color="{AppThemeBinding Light=#1976D2, Dark=#64B5F6}" />
             <Label Text="{Binding Source={x:Reference root}, Path=Balance, StringFormat='{0:C}'}" 
                    FontSize="28" 
                    FontAttributes="Bold"

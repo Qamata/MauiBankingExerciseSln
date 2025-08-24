@@ -12,15 +12,9 @@ namespace MauiBankingExercise.Services
     {
         private static DatabaseService _instance;
         private SQLiteConnection _dbConnection;
+        private readonly IDataRefreshService _refreshService;
 
-        public static DatabaseService GetInstance()
-        {
-            if (_instance == null)
-            {
-                _instance = new DatabaseService();
-            }
-            return _instance;
-        }
+ 
 
         public async Task<List<TransactionType>> GetAllTransactionTypesAsync()
         {
@@ -93,21 +87,24 @@ namespace MauiBankingExercise.Services
             }
         }
 
-        public DatabaseService()
+        public DatabaseService(IDataRefreshService refreshService)
         {
+            _refreshService = refreshService;
             Console.WriteLine("Initializing DatabaseService...");
-            Console.WriteLine($"Database path: {GetDatabasePath()}");
 
-            // Example: Always overwrite for debugging
-            if (File.Exists(GetDatabasePath()))
-                File.Delete(GetDatabasePath());
-            ExtractDbEmbeddedResource();
+            // Extract database if needed
+            if (!File.Exists(GetDatabasePath()))
+            {
+                ExtractDbEmbeddedResource();
+            }
 
             _dbConnection = new SQLiteConnection(GetDatabasePath());
             Console.WriteLine("SQLite connection created successfully");
 
             DebugDatabaseContents();
         }
+
+        
 
         public async Task InitializeDatabaseAsync()
         {
@@ -173,6 +170,38 @@ namespace MauiBankingExercise.Services
                 return false;
             }
         }
+        public async Task<bool> ValidateTransaction(Transaction transaction)
+{
+    try
+    {
+        var account = _dbConnection.Table<Account>()
+            .FirstOrDefault(a => a.AccountId == transaction.AccountId);
+
+        if (account == null)
+        {
+            return false;
+        }
+
+        if (transaction.TransactionTypeId == 2 && transaction.Amount > account.AccountBalance)
+        {
+            return false;
+        }
+
+        if (transaction.Amount <= 0)
+        {
+            return false;
+        }
+
+        var transactionType = _dbConnection.Table<TransactionType>()
+            .FirstOrDefault(t => t.TransactionTypeId == transaction.TransactionTypeId);
+
+        return transactionType != null;
+    }
+    catch (Exception)
+    {
+        return false;
+    }
+}
 
         public async Task<List<Customer>> GetAllCustomersAsync()
         {
@@ -482,68 +511,92 @@ namespace MauiBankingExercise.Services
             }
         }
 
-        // Services/DatabaseService.cs
-        // In DatabaseService.MakeTransactionAsync method
+        // Services/DatabaseService.cs - Ensure it gets fresh data
         public async Task<bool> MakeTransactionAsync(Transaction transaction)
         {
             try
             {
-                Console.WriteLine("=== MAKING TRANSACTION ===");
-                Console.WriteLine($"Account ID: {transaction.AccountId}");
-                Console.WriteLine($"Transaction Type: {transaction.TransactionTypeId}");
-                Console.WriteLine($"Amount: {transaction.Amount:C}");
+                bool success = false;
 
-                // Use synchronous RunInTransaction
                 _dbConnection.RunInTransaction(() =>
                 {
-                    // 1. First, get the current account balance
-                    var account = _dbConnection.Table<Account>()
-                        .FirstOrDefault(a => a.AccountId == transaction.AccountId);
-
-                    if (account == null)
+                    try
                     {
-                        Console.WriteLine("ERROR: Account not found!");
-                        return;
+                        var account = _dbConnection.Table<Account>()
+                            .FirstOrDefault(a => a.AccountId == transaction.AccountId);
+
+                        if (account == null)
+                        {
+                            Console.WriteLine("Account not found");
+                            return;
+                        }
+
+                        if (transaction.TransactionTypeId == 2 && transaction.Amount > account.AccountBalance)
+                        {
+                            Console.WriteLine("Insufficient funds for withdrawal");
+                            return;
+                        }
+
+                        decimal newBalance = account.AccountBalance;
+
+                        switch (transaction.TransactionTypeId)
+                        {
+                            case 1:
+                                newBalance += transaction.Amount;
+                                break;
+                            case 2:
+                                newBalance -= transaction.Amount;
+                                break;
+                            case 3:
+                                newBalance -= transaction.Amount;
+                                break;
+                            default:
+                                Console.WriteLine("Unknown transaction type");
+                                return;
+                        }
+
+                        _dbConnection.Insert(transaction);
+
+                        account.AccountBalance = newBalance;
+                        _dbConnection.Update(account);
+
+                        var verifiedAccount = _dbConnection.Table<Account>()
+                            .FirstOrDefault(a => a.AccountId == transaction.AccountId);
+
+                        success = verifiedAccount != null && verifiedAccount.AccountBalance == newBalance;
                     }
-
-                    Console.WriteLine($"Current balance: {account.AccountBalance:C}");
-
-                    // 2. Calculate the new balance
-                    decimal newBalance = account.AccountBalance;
-
-                    if (transaction.TransactionTypeId == 1) // Deposit
+                    catch (Exception ex)
                     {
-                        newBalance += transaction.Amount;
-                        Console.WriteLine($"Deposit: {account.AccountBalance:C} + {transaction.Amount:C} = {newBalance:C}");
+                        Console.WriteLine($"Transaction error: {ex.Message}");
+                        success = false;
                     }
-                    else if (transaction.TransactionTypeId == 2) // Withdrawal
-                    {
-                        newBalance -= transaction.Amount;
-                        Console.WriteLine($"Withdrawal: {account.AccountBalance:C} - {transaction.Amount:C} = {newBalance:C}");
-                    }
-                    else if (transaction.TransactionTypeId == 3) // Transfer
-                    {
-                        newBalance -= transaction.Amount;
-                        Console.WriteLine($"Transfer: {account.AccountBalance:C} - {transaction.Amount:C} = {newBalance:C}");
-                    }
-
-                    // 3. Insert the transaction
-                    _dbConnection.Insert(transaction);
-                    Console.WriteLine($"Transaction inserted successfully");
-
-                    // 4. Update the account balance
-                    account.AccountBalance = newBalance;
-                    _dbConnection.Update(account);
-                    Console.WriteLine($"Account balance updated to: {newBalance:C}");
                 });
 
-                return await Task.FromResult(true);
+                if (success)
+                {
+                    var updatedAccount = _dbConnection.Table<Account>()
+                        .FirstOrDefault(a => a.AccountId == transaction.AccountId);
+
+                    if (updatedAccount != null)
+                    {
+                        _refreshService.NotifyAccountUpdated(updatedAccount);
+                        _refreshService.NotifyTransactionsUpdated();
+                    }
+
+                    return true;
+                }
+
+                return false;
+            }
+            catch (SQLiteException sqlEx)
+            {
+                Console.WriteLine($"SQLite error: {sqlEx.Message}");
+                return false;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error making transaction: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
-                return await Task.FromResult(false);
+                Console.WriteLine($"Unexpected error: {ex.Message}");
+                return false;
             }
         }
     }

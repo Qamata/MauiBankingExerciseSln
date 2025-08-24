@@ -11,6 +11,7 @@ namespace MauiBankingExercise.ViewModels
         private readonly IDatabaseService _databaseService;
         private readonly INavigationService _navigationService;
         private readonly IDataRefreshService _refreshService;
+        private readonly IBalanceVerificationService _balanceVerificationService;
 
         private Account _account;
         public Account Account
@@ -55,12 +56,17 @@ namespace MauiBankingExercise.ViewModels
         public ICommand SubmitTransactionCommand { get; }
         public ICommand LoadTransactionTypesCommand { get; }
 
-        public TransactionViewModel(IDatabaseService databaseService, INavigationService navigationService,
-                          IDataRefreshService refreshService)
+        public TransactionViewModel(
+            IDatabaseService databaseService,
+            INavigationService navigationService,
+            IDataRefreshService refreshService,
+            IBalanceVerificationService balanceVerificationService)
         {
-            _refreshService = refreshService;
             _databaseService = databaseService;
             _navigationService = navigationService;
+            _refreshService = refreshService;
+            _balanceVerificationService = balanceVerificationService;
+
             SubmitTransactionCommand = new Command(async () => await SubmitTransaction(), () => !IsBusy);
             LoadTransactionTypesCommand = new Command(async () => await LoadTransactionTypes());
         }
@@ -192,7 +198,6 @@ namespace MauiBankingExercise.ViewModels
             }
         }
 
-        // In TransactionViewModel.cs - Fix the SubmitTransaction method
         private async Task SubmitTransaction()
         {
             // Validation
@@ -208,8 +213,16 @@ namespace MauiBankingExercise.ViewModels
                 return;
             }
 
+            // Get fresh account data for validation to ensure we have current balance
+            var freshAccount = await _databaseService.GetAccountByIdAsync(Account.AccountId);
+            if (freshAccount == null)
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", "Account not found", "OK");
+                return;
+            }
+
             // Check for sufficient funds for withdrawals
-            if (SelectedTransactionType.TransactionTypeId == 2 && Amount > Account.AccountBalance) // Withdrawal
+            if (SelectedTransactionType.TransactionTypeId == 2 && Amount > freshAccount.AccountBalance)
             {
                 await Application.Current.MainPage.DisplayAlert("Error", "Insufficient funds", "OK");
                 return;
@@ -229,32 +242,29 @@ namespace MauiBankingExercise.ViewModels
                     TransactionDate = DateTime.Now
                 };
 
-                Console.WriteLine($"Submitting transaction for account {Account.AccountId}, current balance: {Account.AccountBalance:C}");
+                Console.WriteLine($"Submitting transaction: {transaction.Amount:C} for account {transaction.AccountId}, type {transaction.TransactionTypeId}");
+                Console.WriteLine($"Current account balance: {freshAccount.AccountBalance:C}");
 
                 var success = await _databaseService.MakeTransactionAsync(transaction);
 
                 if (success)
                 {
-                    // Get a fresh copy of the account from database
-                    var updatedAccount = await _databaseService.GetAccountWithBalanceAsync(Account.AccountId);
+                    // Use the balance verification service to ensure data integrity
+                    var updatedAccount = await _balanceVerificationService.VerifyBalanceAfterTransactionAsync(Account.AccountId);
 
                     if (updatedAccount != null)
                     {
-                        Console.WriteLine($"Transaction successful. New balance: {updatedAccount.AccountBalance:C}");
-
-                        // Update our local account reference with the new balance
-                        Account.AccountBalance = updatedAccount.AccountBalance;
-
-                        // Notify other parts of the app about the update
+                        // Balance was corrected, use the corrected account
                         _refreshService.NotifyAccountUpdated(updatedAccount);
-                        _refreshService.NotifyTransactionsUpdated();
-
                         await Application.Current.MainPage.DisplayAlert("Success",
                             $"Transaction completed successfully. New balance: {updatedAccount.AccountBalance:C}", "OK");
                     }
                     else
                     {
-                        await Application.Current.MainPage.DisplayAlert("Success", "Transaction completed successfully", "OK");
+                        // Balance was already correct, just notify about transactions
+                        _refreshService.NotifyTransactionsUpdated();
+                        await Application.Current.MainPage.DisplayAlert("Success",
+                            "Transaction completed successfully", "OK");
                     }
 
                     await _navigationService.GoBackAsync();
@@ -267,6 +277,7 @@ namespace MauiBankingExercise.ViewModels
             catch (Exception ex)
             {
                 Console.WriteLine($"Error submitting transaction: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 await Application.Current.MainPage.DisplayAlert("Error", $"Transaction failed: {ex.Message}", "OK");
             }
             finally
@@ -282,7 +293,6 @@ namespace MauiBankingExercise.ViewModels
             ((Command)SubmitTransactionCommand).ChangeCanExecute();
         }
 
-        // Remove the OnPropertyChanged override since we'll use a different approach
         protected void OnViewModelPropertyChanged([CallerMemberName] string propertyName = null)
         {
             OnPropertyChanged(propertyName);

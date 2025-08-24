@@ -24,8 +24,11 @@ namespace MauiBankingExercise
 #endif
 
             // Register Services
-            builder.Services.AddSingleton<IDatabaseService>(_ => DatabaseService.GetInstance());
+            builder.Services.AddSingleton<IDatabaseService, DatabaseService>();
             builder.Services.AddSingleton<INavigationService, NavigationService>();
+            builder.Services.AddSingleton<IDataRefreshService, DataRefreshService>();
+            builder.Services.AddSingleton<IBalanceVerificationService, BalanceVerificationService>();
+
 
             // Register ViewModels
             builder.Services.AddTransient<CustomerSelectionViewModel>();
@@ -38,9 +41,8 @@ namespace MauiBankingExercise
             builder.Services.AddTransient<CustomerDashboardPage>();
             builder.Services.AddTransient<AccountDetailsPage>();
             builder.Services.AddTransient<TransactionPage>();
-            // MauiProgram.cs
-            builder.Services.AddSingleton<IDataRefreshService, DataRefreshService>();
-
+            
+            
             return builder.Build();
         }
     }
