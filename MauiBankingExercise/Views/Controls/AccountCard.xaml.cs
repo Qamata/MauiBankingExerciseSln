@@ -1,5 +1,4 @@
 using MauiBankingExercise.Models;
-using Microsoft.Maui.Controls;
 
 namespace MauiBankingExercise.Views.Controls
 {

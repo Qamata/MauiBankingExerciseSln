@@ -38,7 +38,7 @@ namespace MauiBankingExercise.Services
             return Path.Combine(pathToDb, filename);
         }
 
-        // In DatabaseService.cs - Update ExtractDbEmbeddedResource method
+      
         private void ExtractDbEmbeddedResource()
         {
             try
@@ -113,7 +113,7 @@ namespace MauiBankingExercise.Services
             await Task.CompletedTask;
         }
 
-        // In DatabaseService.cs - Update the HasData method
+       
         public bool HasData()
         {
             try
@@ -284,7 +284,6 @@ namespace MauiBankingExercise.Services
             }
         }
 
-        // In DatabaseService.cs - Add this comprehensive debug method
         private void DebugDatabaseContents()
         {
             try
@@ -387,7 +386,7 @@ namespace MauiBankingExercise.Services
             }
         }
 
-        // Services/DatabaseService.cs
+      
         public async Task<bool> UpdateAccountBalanceAsync(int accountId, decimal newBalance)
         {
             try
